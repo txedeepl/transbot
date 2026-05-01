@@ -1,52 +1,44 @@
 import os
 import discord
 from discord.ext import commands
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 from dotenv import load_dotenv
 
-# Carga las variables desde el archivo .env
+# Carga de variables
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 ID_ES = int(os.getenv('ID_ESPANOL'))
 ID_EN = int(os.getenv('ID_INGLES'))
 
-# Configuración de Discord
 intents = discord.Intents.default()
 intents.message_content = True 
 
 bot = commands.Bot(command_prefix="!", intents=intents)
-translator = Translator()
 
 @bot.event
 async def on_ready():
-    print(f'✅ Bot listo como {bot.user}')
-    print(f'Configurado para IDs: {ID_ES} y {ID_EN}')
+    print(f'✅ Bot traductor conectado como {bot.user}')
 
 @bot.event
 async def on_message(message):
-    # Evitar bucles (que el bot se lea a sí mismo)
     if message.author == bot.user or not message.content:
         return
 
     try:
-        # Traducción según el ID del autor
+        # Si escribe el usuario de ESPAÑOL -> Traducir a INGLÉS
         if message.author.id == ID_ES:
-            # Viene de español -> Traducir a inglés
-            res = translator.translate(message.content, src='es', dest='en')
-            await message.channel.send(f"🇬🇧 {res.text}")
+            traduccion = GoogleTranslator(source='es', target='en').translate(message.content)
+            await message.channel.send(f"🇬🇧 {traduccion}")
 
+        # Si escribe el usuario de INGLÉS -> Traducir a ESPAÑOL
         elif message.author.id == ID_EN:
-            # Viene de inglés -> Traducir a español
-            res = translator.translate(message.content, src='en', dest='es')
-            await message.channel.send(f"🇪🇸 {res.text}")
+            traduccion = GoogleTranslator(source='en', target='es').translate(message.content)
+            await message.channel.send(f"🇪🇸 {traduccion}")
 
     except Exception as e:
-        print(f"Error en la traducción: {e}")
+        print(f"Error: {e}")
 
     await bot.process_commands(message)
 
-# Ejecutar el bot
 if TOKEN:
     bot.run(TOKEN)
-else:
-    print("❌ Error: No se encontró el DISCORD_TOKEN en el archivo .env")
