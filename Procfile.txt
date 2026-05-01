@@ -1,1 +1,1 @@
-worker: python traductor.py
+worker: python main.py
